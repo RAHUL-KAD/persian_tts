@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="fa" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>پارسی‌گو — تبدیل متن فارسی به گفتار</title>
+<title>ParsiGo — Persian Text to Speech</title>
 <style>
 /* Vazirmatn v33.003 (SIL OFL 1.1, see fonts/OFL.txt) — bundled so the demo
    stays fully offline; variable weight covers the 400-800 weights used here */
@@ -72,7 +72,7 @@ textarea::placeholder{color:var(--faint)}
 .chip:hover{color:var(--text);border-color:var(--accent)}
 
 /* ---------- voices ---------- */
-.vcard{display:flex;align-items:center;gap:12px;width:100%;text-align:right;
+.vcard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
   background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-s);
   padding:11px 13px;margin-bottom:9px;cursor:pointer;transition:all .18s;font:inherit;color:var(--text)}
 .vcard:hover{border-color:#39415c}
@@ -175,7 +175,7 @@ canvas{width:100%;height:100%;border-radius:8px}
 footer{margin-top:46px;text-align:center;font-size:11.5px;color:var(--faint)}
 footer b{color:var(--muted);font-weight:600}
 
-.toast{position:fixed;bottom:24px;right:50%;transform:translateX(50%);
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
   background:var(--surface-2);border:1px solid var(--border);border-radius:99px;
   padding:10px 20px;font-size:13px;box-shadow:var(--shadow);display:none;z-index:9}
 .toast.show{display:block;animation:rise .3s ease}
@@ -192,68 +192,68 @@ footer b{color:var(--muted);font-weight:600}
       </svg>
     </div>
     <div>
-      <h1>پارسی‌گو</h1>
-      <div class="sub">تبدیل متن فارسی به گفتار، با کلونینگ صدای مرجع</div>
+      <h1>ParsiGo</h1>
+      <div class="sub">Persian text-to-speech with reference voice cloning</div>
     </div>
-    <div class="badge">موتور ONNX · آفلاین · بدون torch</div>
+    <div class="badge">ONNX engine · Offline · No torch</div>
   </header>
 
   <div class="grid">
     <section class="panel">
-      <div class="label"><span>متن فارسی</span><span class="cnt" id="cnt"></span></div>
-      <textarea id="txt" placeholder="متن خود را بنویسید…">سلام، حال شما چطور است؟ امیدوارم روز خوبی داشته باشید.</textarea>
+      <div class="label"><span>Persian text</span><span class="cnt" id="cnt"></span></div>
+      <textarea id="txt" placeholder="Write your text…">Hello, how are you? I hope you have a good day.</textarea>
       <div class="chips" id="chips"></div>
       <div class="pace-row">
-        <span class="plabel">حالت گفتار</span>
+        <span class="plabel">Speech mode</span>
         <div class="pchips">
-          <button class="pchip sel" data-m="split" title="هر ویرگول و علامت، مکث خودش را می‌گیرد">با مکث ویرگول‌ها</button>
-          <button class="pchip" data-m="pack" title="جمله در نفس‌های بلندتر خوانده می‌شود؛ فقط دونقطه و خط تیره مکث دارند">یکپارچه و روان</button>
+          <button class="pchip sel" data-m="split" title="Every comma and punctuation mark gets its own pause">Pause at commas</button>
+          <button class="pchip" data-m="pack" title="The sentence is read in longer breaths; only colons and dashes pause">Continuous &amp; fluent</button>
         </div>
       </div>
       <div class="pace-row">
-        <span class="plabel">سرعت گفتار</span>
+        <span class="plabel">Speech speed</span>
         <div class="pchips">
-          <button class="pchip" data-p="0.85">آرام</button>
-          <button class="pchip sel" data-p="1">معمولی</button>
-          <button class="pchip" data-p="1.2">سریع</button>
+          <button class="pchip" data-p="0.85">Slow</button>
+          <button class="pchip sel" data-p="1">Normal</button>
+          <button class="pchip" data-p="1.2">Fast</button>
         </div>
         <input type="range" id="pace" min="0.7" max="1.35" step="0.05" value="1" dir="ltr">
-        <span class="pval" id="paceVal">۱٫۰۰×</span>
+        <span class="pval" id="paceVal">1.00×</span>
       </div>
       <button class="go" id="go">
         <span class="tx" style="display:flex;align-items:center;gap:10px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/>
           </svg>
-          ساخت گفتار
+          Generate speech
         </span>
         <span class="eq"><i></i><i></i><i></i><i></i></span>
       </button>
 
       <div class="ph-tools">
-        <button class="ph-prep" id="phPrep">اصلاح تلفظ / ویرایش فونم</button>
+        <button class="ph-prep" id="phPrep">Fix pronunciation / Edit phonemes</button>
         <div class="ph-editor" id="phEditor">
-          <div class="label"><span>فونم قابل ویرایش</span><span class="cnt">لاتین</span></div>
-          <textarea id="phInput" dir="ltr" spellcheck="false" placeholder="فونم تولیدشده اینجا نمایش داده می‌شود…"></textarea>
-          <div class="ph-hint">اگر تلفظ واژه‌ای اشتباه است، فقط همان بخش را اصلاح کنید؛ مثلاً <b>tost</b> را به <b>test</b> تغییر دهید.</div>
-          <button class="go" id="phGo">ساخت گفتار از فونم اصلاح‌شده</button>
+          <div class="label"><span>Editable phonemes</span><span class="cnt">Latin</span></div>
+          <textarea id="phInput" dir="ltr" spellcheck="false" placeholder="Generated phonemes will appear here…"></textarea>
+          <div class="ph-hint">If a word is pronounced wrongly, edit only that part; for example, change <b>tost</b> to <b>test</b>.</div>
+          <button class="go" id="phGo">Generate speech from edited phonemes</button>
         </div>
       </div>
     </section>
 
     <aside class="panel">
-      <div class="label"><span>صدای مرجع</span><span class="cnt">≤ ۵ ثانیه</span></div>
+      <div class="label"><span>Reference voice</span><span class="cnt">≤ 5 sec</span></div>
       <div id="voices"></div>
       <div class="drop" id="drop">
-        <b>بارگذاری صدا</b> — یا فایل را اینجا رها کنید<br>
-        <span style="font-size:11px;color:var(--faint)">صدای خودت را بده تا با آن حرف بزند (WAV)</span>
+        <b>Upload voice</b> — or drop a file here<br>
+        <span style="font-size:11px;color:var(--faint)">Provide your own voice so it speaks with it (WAV)</span>
       </div>
       <input type="file" id="file" accept=".wav,.mp3,.ogg,.flac" hidden>
     </aside>
   </div>
 
   <section class="panel result" id="result">
-    <div class="label"><span>فونم‌های تولیدشده</span><span class="cnt" id="rmeta"></span></div>
+    <div class="label"><span>Generated phonemes</span><span class="cnt" id="rmeta"></span></div>
     <div class="ph" id="ph"></div>
     <div class="player">
       <button class="play" id="play">
@@ -261,8 +261,8 @@ footer b{color:var(--muted);font-weight:600}
         <svg id="icPause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
       </button>
       <div class="wave" id="wave"><canvas id="cv"></canvas></div>
-      <div class="tm" id="tm">۰:۰۰ / ۰:۰۰</div>
-      <div class="dl" id="dl" title="دانلود WAV">
+      <div class="tm" id="tm">0:00 / 0:00</div>
+      <div class="dl" id="dl" title="Download WAV">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 21h16"/>
         </svg>
@@ -271,11 +271,11 @@ footer b{color:var(--muted);font-weight:600}
   </section>
 
   <section class="hist" id="histWrap" style="display:none">
-    <h2>تاریخچه</h2>
+    <h2>History</h2>
     <div id="hist"></div>
   </section>
 
-  <footer>ساخته‌شده با <b>pocket-tts-farsi-v2</b> روی <b>ONNX Runtime</b> — کاملاً آفلاین، بدون GPU</footer>
+  <footer>Built with <b>pocket-tts-farsi-v2</b> on <b>ONNX Runtime</b> — fully offline, no GPU</footer>
 </div>
 <div class="toast" id="toast"></div>
 <audio id="au" preload="auto"></audio>
@@ -283,8 +283,8 @@ footer b{color:var(--muted);font-weight:600}
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
-const fa = n => String(n).replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
-const fmt = s => { s = Math.max(0, s|0); return fa((s/60|0)) + ":" + fa(String(s%60).padStart(2,"0")); };
+const fa = n => String(n);
+const fmt = s => { s = Math.max(0, s|0); return (s/60|0) + ":" + String(s%60).padStart(2,"0"); };
 
 // the waveform gradient follows the theme: read the CSS custom properties
 // once at load (no theme switching here, so the cache never goes stale)
@@ -319,10 +319,10 @@ function renderVoices() {
 
 /* ---------- chips ---------- */
 const SAMPLES = [
-  "سلام، حال شما چطور است؟",
-  "اقتصاد آمریکا را تا سال ۲۰۳۰ تغییر دهد.",
-  "امروز هوا ابری است اما باران نمی‌بارد.",
-  "دانشگاه تهران در سال ۱۳۱۳ تأسیس شد.",
+  "Hello, how are you?",
+  "It should change the American economy by 2030.",
+  "The weather is cloudy today, but it isn't raining.",
+  "The University of Tehran was founded in 1934.",
 ];
 $("chips").innerHTML = SAMPLES.map(s => `<button class="chip">${s}</button>`).join("");
 document.querySelectorAll(".chip").forEach(c => c.onclick = () => {
@@ -331,15 +331,15 @@ document.querySelectorAll(".chip").forEach(c => c.onclick = () => {
 
 /* ---------- pace ---------- */
 const paceEl = $("pace");
-function faNum(x) { return fa(x).replace(".", "٫"); }
+function faNum(x) { return fa(x); }
 function setPace(v, fromChip) {
   paceEl.value = v;
   $("paceVal").textContent = faNum((+v).toFixed(2)) + "×";
-  document.querySelectorAll(".pchip").forEach(c =>
+  document.querySelectorAll(".pchip[data-p]").forEach(c =>
     c.classList.toggle("sel", Math.abs(+c.dataset.p - v) < 0.01));
 }
 paceEl.addEventListener("input", () => setPace(paceEl.value));
-document.querySelectorAll(".pchip").forEach(c =>
+document.querySelectorAll(".pchip[data-p]").forEach(c =>
   c.onclick = () => setPace(c.dataset.p));
 setPace(1);
 
@@ -377,52 +377,52 @@ $("drop").ondrop = e => { e.preventDefault(); $("drop").classList.remove("over")
 $("file").onchange = e => { if (e.target.files[0]) sendFile(e.target.files[0]); e.target.value = ""; };
 
 async function sendFile(f) {
-  toast("در حال بارگذاری و پردازش صدا…");
+  toast("Uploading and processing voice…");
   const fd = new FormData(); fd.append("file", f);
   const r = await fetch("/api/voice/upload", { method: "POST", body: fd }).then(r => r.json())
-    .catch(() => ({ detail: "خطای شبکه" }));
-  if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "فایل پذیرفته نشد");
-  toast(`صدا اضافه شد (${fa(r.seconds)} ثانیه)`);
+    .catch(() => ({ detail: "Network error" }));
+  if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "File not accepted");
+  toast(`Voice added (${fa(r.seconds)} seconds)`);
   await loadVoices(); selVoice = r.id; renderVoices();
 }
 
 /* ---------- manual phonemes ---------- */
 $("phPrep").onclick = async () => {
   const text = $("txt").value.trim();
-  if (!text) return toast("متنی بنویسید");
+  if (!text) return toast("Write some text");
   const b = $("phPrep"), old = b.textContent;
-  b.disabled = true; b.textContent = "در حال تبدیل متن به فونم…";
+  b.disabled = true; b.textContent = "Converting text to phonemes…";
   try {
     const r = await fetch("/api/phonemize", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, mode }),
     }).then(r => r.json());
-    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "خطا در تبدیل به فونم");
+    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "Error converting to phonemes");
     $("phInput").value = r.phonemes;
     $("phEditor").classList.add("show");
     $("phInput").focus();
-  } catch (e) { toast("ارتباط با سرور برقرار نشد"); }
+  } catch (e) { toast("Could not reach the server"); }
   finally { b.disabled = false; b.textContent = old; }
 };
 
 $("phGo").onclick = async () => {
   const phonemes = $("phInput").value.trim();
-  if (!phonemes) return toast("فونم خالی است");
+  if (!phonemes) return toast("Phonemes are empty");
   const b = $("phGo"), old = b.textContent;
   const t0 = performance.now();
   b.disabled = true;
-  b.textContent = "در حال ساخت… ۰ ثانیه";
+  b.textContent = "Generating… 0 s";
   const tick = setInterval(() => {
-    b.textContent = `در حال ساخت… ${fa(((performance.now()-t0)/1000).toFixed(0))} ثانیه`;
+    b.textContent = `Generating… ${fa(((performance.now()-t0)/1000).toFixed(0))} s`;
   }, 250);
   try {
     const r = await fetch("/api/tts-phonemes", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phonemes, voice: selVoice, pace: +paceEl.value }),
     }).then(r => r.json());
-    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "خطا در تولید");
+    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "Error generating speech");
     await present(r, $("txt").value.trim());
-  } catch (e) { toast("ارتباط با سرور برقرار نشد"); }
+  } catch (e) { toast("Could not reach the server"); }
   finally {
     clearInterval(tick);
     b.disabled = false;
@@ -433,23 +433,23 @@ $("phGo").onclick = async () => {
 /* ---------- generate ---------- */
 $("go").onclick = async () => {
   const text = $("txt").value.trim();
-  if (!text) return toast("متنی بنویسید");
+  if (!text) return toast("Write some text");
   $("go").disabled = true; $("go").classList.add("busy");
   const t0 = performance.now();
   const tick = setInterval(() =>
-    $("go").querySelector(".tx").textContent = `در حال ساخت… ${fa(((performance.now()-t0)/1000).toFixed(0))} ثانیه`, 250);
+    $("go").querySelector(".tx").textContent = `Generating… ${fa(((performance.now()-t0)/1000).toFixed(0))} s`, 250);
   try {
     const r = await fetch("/api/tts", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, voice: selVoice, pace: +paceEl.value, mode }),
     }).then(r => r.json());
-    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "خطا در تولید");
+    if (r.detail) return toast(typeof r.detail === "string" ? r.detail : "Error generating speech");
     await present(r, text);
-  } catch (e) { toast("ارتباط با سرور برقرار نشد"); }
+  } catch (e) { toast("Could not reach the server"); }
   finally {
     clearInterval(tick);
     $("go").disabled = false; $("go").classList.remove("busy");
-    $("go").querySelector(".tx").innerHTML = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:flex"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg> ساخت گفتار`;
+    $("go").querySelector(".tx").innerHTML = `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="display:flex"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/></svg> Generate speech`;
   }
 };
 
@@ -471,7 +471,7 @@ function drawCanvas(prog) {
     const bh = Math.max(3 * dpr, peaks[i] * h * 0.92);
     const played = i / n <= prog;
     ctx.fillStyle = played ? g : "rgba(140,148,170,.28)";
-    const x = w - (i + 1) * bw + bw * 0.18;   // RTL: time flows right→left
+    const x = i * bw + bw * 0.18;   // LTR: time flows left→right
     ctx.beginPath();
     ctx.roundRect(x, mid - bh / 2, bw * 0.64, bh, bw * 0.32);
     ctx.fill();
@@ -493,7 +493,7 @@ async function present(r, text) {
   curId = r.id; curDur = r.duration;
   $("result").classList.add("show");
   $("ph").textContent = r.phonemes;
-  $("rmeta").textContent = `${fa(r.sentences)} جمله · ${fa(r.duration)} ثانیه`;
+  $("rmeta").textContent = `${fa(r.sentences)} sentences · ${fa(r.duration)} seconds`;
   $("result").scrollIntoView({ behavior: "smooth", block: "nearest" });
 
   // decode for the waveform
@@ -530,15 +530,15 @@ $("play").onclick = () => {
   if (!au.src) return;
   if (au.paused) { au.play(); setPlayIcon(true); } else { au.pause(); setPlayIcon(false); }
 };
-// click-to-seek on the waveform (RTL mapping)
+// click-to-seek on the waveform (LTR mapping)
 $("wave").addEventListener("pointerdown", e => {
   if (!au.src || !peaks) return;
   seeking = true;
   const rect = cv.getBoundingClientRect();
-  const frac = Math.min(1, Math.max(0, (rect.right - e.clientX) / rect.width));
+  const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
   au.currentTime = frac * curDur; draw(frac);
   const move = ev => {
-    const f = Math.min(1, Math.max(0, (rect.right - ev.clientX) / rect.width));
+    const f = Math.min(1, Math.max(0, (ev.clientX - rect.left) / rect.width));
     au.currentTime = f * curDur; draw(f);
   };
   const up = () => { seeking = false; removeEventListener("pointermove", move); removeEventListener("pointerup", up); };
@@ -558,7 +558,7 @@ function renderHistory() {
     <div class="hrow" data-i="${i}">
       <span class="hplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
       <span class="htx">${h.text}</span>
-      <span class="hd">${fa(h.dur)} ثانیه</span>
+      <span class="hd">${fa(h.dur)} seconds</span>
     </div>`).join("");
   document.querySelectorAll(".hrow").forEach(row => row.onclick = () => {
     const h = history[+row.dataset.i];
