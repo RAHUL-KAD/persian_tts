@@ -208,6 +208,73 @@ def tts_phonemes(req: PhonemeTTSRequest):
     }
 
 
+@app.get("/health")
+def health():
+    """Check server, model, manifest, and synthesis readiness."""
+    checks = {
+        "server": "ok",
+        "manifest": "ok",
+        "voices": "ok",
+        "engine": "ok",
+        "synthesis": "ok",
+    }
+
+    try:
+        manifest = PKG / "manifest.json"
+        if not manifest.is_file():
+            raise RuntimeError("manifest.json not found")
+        json.loads(manifest.read_text(encoding="utf-8"))
+    except Exception as e:
+        checks["manifest"] = str(e)
+
+    try:
+        if not (BASE / "voices").is_dir():
+            raise RuntimeError("voices directory not found")
+        if not list_voices():
+            raise RuntimeError("no voices available")
+    except Exception as e:
+        checks["voices"] = str(e)
+
+    try:
+        engine = get_engine()
+        checks["engine"] = "ok"
+    except Exception as e:
+        checks["engine"] = str(e)
+        checks["synthesis"] = "not checked"
+
+    if checks["engine"] == "ok":
+        try:
+            test_voice = next(
+                (v["id"] for v in list_voices() if v["builtin"]),
+                None,
+            )
+            if test_voice is None:
+                raise RuntimeError("no builtin voice available")
+
+            with _engine_lock:
+                audio = engine.synthesize(
+                    "سلام",
+                    voice_path(test_voice),
+                    pace=1.0,
+                )
+
+            if audio is None or len(audio) == 0:
+                raise RuntimeError("empty audio generated")
+        except Exception as e:
+            checks["synthesis"] = str(e)
+
+    healthy = all(value == "ok" for value in checks.values())
+
+    return Response(
+        content=json.dumps({
+            "status": "healthy" if healthy else "unhealthy",
+            "checks": checks,
+        }, ensure_ascii=False),
+        media_type="application/json",
+        status_code=200 if healthy else 503,
+    )
+
+
 @app.post("/api/tts")
 def tts(req: TTSRequest):
     text = req.text.strip()
@@ -272,6 +339,29 @@ def tts(req: TTSRequest):
         "sentences": len(phonemes_all),
         "elapsed": None,
     }
+
+
+
+@app.post("/api/tts/audio")
+def tts_audio(req: TTSRequest):
+    """Generate speech and return the WAV directly."""
+    # Reuse the existing TTS implementation.
+    result = tts(req)
+
+    with _store_lock:
+        item = _audio_store.get(result["id"])
+
+    if item is None:
+        raise HTTPException(500, "Generated audio not found")
+
+    return Response(
+        content=item["wav"],
+        media_type="audio/wav",
+        headers={
+            "Content-Disposition": 'inline; filename="speech.wav"',
+            "X-Audio-Duration": str(result["duration"]),
+        },
+    )
 
 
 @app.get("/api/audio/{audio_id}")
