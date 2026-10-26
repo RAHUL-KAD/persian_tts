@@ -280,9 +280,10 @@ def tts(req: TTSRequest):
     text = req.text.strip()
     if not text:
         raise HTTPException(400, "متن خالی است")
-    if len(text) > MAX_TEXT:
-        raise HTTPException(400, f"متن طولانی است (حداکثر {MAX_TEXT} نویسه)")
-
+    # if len(text) > MAX_TEXT:
+    #     raise HTTPException(400, f"متن طولانی است (حداکثر {MAX_TEXT} نویسه)")
+    print(f"TTS API request -- Text - {text}")
+    
     engine = get_engine()
     pace = float(min(max(req.pace, 0.6), 1.5))
     if req.mode not in ("split", "pack"):
@@ -330,6 +331,7 @@ def tts(req: TTSRequest):
             "duration": duration,
             "phonemes": " ".join(phonemes_all),
         }
+    print("Audio generated for audio_id -- ", audio_id)
     return {
         "id": audio_id,
         "phonemes": " ".join(phonemes_all),
@@ -346,6 +348,7 @@ def tts(req: TTSRequest):
 def tts_audio(req: TTSRequest):
     """Generate speech and return the WAV directly."""
     # Reuse the existing TTS implementation.
+    print("In /api/tts/audio")
     result = tts(req)
 
     with _store_lock:
